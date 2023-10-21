@@ -45,7 +45,7 @@ class NetCat:
         self.args = args
         self.buffer = buffer
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REAUSEADDR, 1)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def run(self):
         if self.args.listen:
@@ -72,11 +72,11 @@ class NetCat:
                         break
                 if response:
                     print(response)
-                    buffer = input('> ')
+                    buffer = input('')
                     buffer += '\n'
                     self.socket.send(buffer.encode())
         except KeyboardInterrupt:
-            print('User terminated.')
+            print('\nUser terminated.')
             self.socket.close()
             sys.exit()
 
@@ -84,18 +84,25 @@ class NetCat:
         # attach to endpoint
         self.socket.bind((self.args.target, self.args.port))
         self.socket.listen(5)
+        print(f'Listening on {self.args.target}:{self.args.port}')
 
         # carry out commands from sender
-        while True:
-            client_socket, _ = self.socket.accept()
-            client_thread = threading.Thread(
-                    target=self.handle,
-                    args=(client_socket,)
-            )
-            client_thread.start()
+        try:
+            while True:
+                client_socket, _ = self.socket.accept()
+                client_thread = threading.Thread(
+                        target=self.handle,
+                        args=(client_socket,)
+                )
+                client_thread.start()
+        except KeyboardInterrupt:
+            print('\nUser terminated')
+            self.socket.close()
+            sys.exit()
 
     # (only ran as listener)
-    def handle(self, client_socket):
+    def handle(self, client_socket: socket.socket):
+        print(f'handle spawned for {client_socket.getsockname()}')
         # executes received command
         if self.args.execute:
             output = execute(self.args.execute)
