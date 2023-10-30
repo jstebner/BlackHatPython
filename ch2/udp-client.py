@@ -6,6 +6,9 @@ target_port = 9997
 # create a socket object
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+# BIND CLIENT TO PORT BC BOOK DIDNT DO IT LIKE WTF
+client.bind((target_host, target_port))
+
 # send some data
 client.sendto(b"AAABBBCCC", (target_host, target_port))
 
